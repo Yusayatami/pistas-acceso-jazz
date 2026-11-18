@@ -1,0 +1,61 @@
+{
+ "titulo": "Lectura U3 · Semana 4",
+ "tipo": "tema",
+ "compases": [
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Dm7(b5)",
+   "G7"
+  ],
+  [
+   "Cm7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Abmaj7"
+  ],
+  [
+   "Abmaj7"
+  ],
+  [
+   "Fm7"
+  ],
+  [
+   "Bb7"
+  ],
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Dm7(b5)",
+   "G7"
+  ],
+  [
+   "Cm7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Abmaj7"
+  ],
+  [
+   "Abmaj7"
+  ],
+  [
+   "Fm7"
+  ],
+  [
+   "Bb7"
+  ]
+ ],
+ "coros": 3,
+ "bateria": [
+  "escobillas"
+ ],
+ "fills": []
+}

@@ -1,0 +1,60 @@
+"""Estampa un QR (vectorial) con su rótulo en la esquina superior derecha de páginas de un PDF.
+Uso: python3 estampar_qr.py ENTRADA.pdf SALIDA.pdf
+Las páginas y direcciones están en PAGINAS (número de página 1-based -> (slug, rótulo))."""
+import io, sys
+import qrcode
+from pypdf import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.lib.colors import HexColor
+
+BASE = "https://yusayatami.github.io/pistas-acceso-jazz/"
+PAGINAS = {16: ("u1-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 27: ("u2-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 39: ("u3-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"),
+           54: ("u4-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 65: ("u5-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 77: ("u6-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"),
+           88: ("u7-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 98: ("u8-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 101: ("u9-semana-1-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"),
+           102: ("u9-semana-2-primera-vista", "Contrabajo y batería · Tempo escrito y más lento"), 105: ("u9-simulacro", "Contrabajo y batería · Tempo escrito y más lento"),
+           17: ("afternoon-in-paris", "Contrabajo y batería · Tempo de trabajo y de examen"), 28: ("satin-doll", "Contrabajo y batería · Tempo de trabajo y de examen"), 29: ("four", "Contrabajo y batería · Tempo de trabajo y de examen"), 40: ("blue-monk", "Contrabajo y batería · Tempo de trabajo y de examen"),
+           41: ("impressions", "Contrabajo y batería · Tempo de trabajo y de examen"), 55: ("softly-as-in-a-morning-sunrise", "Contrabajo y batería · Tempo de trabajo y de examen"), 66: ("blue-bossa", "Contrabajo y batería · Tempo de trabajo y de examen"),
+           67: ("autumn-leaves", "Contrabajo y batería · Tempo de trabajo y de examen"), 78: ("lullaby-of-birdland", "Contrabajo y batería · Tempo de trabajo y de examen"), 79: ("in-a-sentimental-mood", "Contrabajo y batería · Tempo de trabajo y de examen"),
+           89: ("all-blues", "Contrabajo y batería · Tempo de trabajo y de examen"), 90: ("bessies-blues", "Contrabajo y batería · Tempo de trabajo y de examen")}
+pdfmetrics.registerFont(TTFont("DMSans-Bold", "/home/claude/DMSans-Bold.ttf"))
+pdfmetrics.registerFont(TTFont("DMSans", "/home/claude/DMSans-Regular.ttf"))
+NARANJA, GRIS = HexColor("#C76B1A"), HexColor("#55606D")
+
+SIZE = 50                      # lado del QR en pt (≈ 18 mm)
+RIGHT, TOP = 544.05, 55.0      # borde derecho del texto de la cabecera; por debajo de su raya
+
+def overlay(w, h, slug, sub):
+    q = qrcode.QRCode(border=0, error_correction=qrcode.constants.ERROR_CORRECT_L)
+    q.add_data(BASE + slug + "/"); q.make(fit=True)
+    m = q.get_matrix(); n = len(m); cell = SIZE / n
+    buf = io.BytesIO(); c = canvas.Canvas(buf, pagesize=(w, h))
+    x0, ytop = RIGHT - SIZE, h - TOP
+    c.setFillColor(HexColor("#000000"))
+    for r, row in enumerate(m):
+        for k, on in enumerate(row):
+            if on: c.rect(x0 + k * cell, ytop - (r + 1) * cell, cell + 0.02, cell + 0.02, stroke=0, fill=1)
+    tx = x0 - 9                                             # rótulo a la izquierda, alineado a la derecha
+    lab, cs = "PISTAS DE ACOMPAÑAMIENTO", 1.1                # rótulo espaciado, como «ANEXO · A3»
+    wl = pdfmetrics.stringWidth(lab, "DMSans-Bold", 7.5) + cs * (len(lab) - 1)
+    t = c.beginText(tx - wl, ytop - 21); t.setFont("DMSans-Bold", 7.5); t.setCharSpace(cs)
+    t.setFillColor(NARANJA); t.textOut(lab); c.drawText(t)
+    def gris(y, txt):
+        w = pdfmetrics.stringWidth(txt, "DMSans", 7.5)
+        g = c.beginText(tx - w, y); g.setFont("DMSans", 7.5); g.setCharSpace(0); g.setFillColor(GRIS)
+        g.textOut(txt); c.drawText(g)
+    gris(ytop - 32, sub.split(" · ")[0])
+    if " · " in sub:
+        gris(ytop - 42, sub.split(" · ")[1])
+    c.save(); buf.seek(0)
+    return PdfReader(buf).pages[0]
+
+r = PdfReader(sys.argv[1]); wtr = PdfWriter()
+for i, p in enumerate(r.pages, 1):
+    if i in PAGINAS:
+        w, h = float(p.mediabox.width), float(p.mediabox.height)
+        p.merge_page(overlay(w, h, *PAGINAS[i]))
+    wtr.add_page(p)
+wtr.write(sys.argv[2])
+print("QR estampados en", len(PAGINAS), "páginas ->", sys.argv[2])

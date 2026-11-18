@@ -1,0 +1,55 @@
+{
+ "tipo": "tema",
+ "compases": [
+  [
+   "Bb6"
+  ],
+  [
+   "Eb6"
+  ],
+  [
+   "Bb6"
+  ],
+  [
+   "Bb7"
+  ],
+  [
+   "Eb6"
+  ],
+  [
+   "Eb6"
+  ],
+  [
+   "Bb6"
+  ],
+  [
+   "Bb6"
+  ],
+  [
+   "F7"
+  ],
+  [
+   "F7"
+  ],
+  [
+   "Bb6"
+  ],
+  [
+   "Bb6"
+  ]
+ ],
+ "titulo": "Blue Monk",
+ "coros": 8,
+ "bateria": [
+  "escobillas",
+  "escobillas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "escobillas",
+  "escobillas"
+ ],
+ "fills": [],
+ "estilo": "swing"
+}

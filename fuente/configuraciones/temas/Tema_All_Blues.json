@@ -1,0 +1,57 @@
+{
+ "tipo": "tema",
+ "compas": 3,
+ "compases": [
+  [
+   "G7"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "C7"
+  ],
+  [
+   "C7"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "D7(#9)"
+  ],
+  [
+   "Eb7(#9)",
+   "D7alt"
+  ],
+  [
+   "G7"
+  ],
+  [
+   "G7"
+  ]
+ ],
+ "titulo": "All Blues",
+ "coros": 8,
+ "bateria": [
+  "escobillas",
+  "escobillas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "escobillas",
+  "escobillas"
+ ],
+ "fills": [],
+ "estilo": "vals"
+}

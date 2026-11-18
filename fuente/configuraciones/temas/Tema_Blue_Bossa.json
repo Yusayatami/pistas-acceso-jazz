@@ -1,0 +1,63 @@
+{
+ "tipo": "tema",
+ "compases": [
+  [
+   "Cm6"
+  ],
+  [
+   "Cm6"
+  ],
+  [
+   "Fm7"
+  ],
+  [
+   "Bb7"
+  ],
+  [
+   "Dm7b5"
+  ],
+  [
+   "G7alt"
+  ],
+  [
+   "Cm6"
+  ],
+  [
+   "Cm6"
+  ],
+  [
+   "Ebm7"
+  ],
+  [
+   "Ab7"
+  ],
+  [
+   "Dbmaj7"
+  ],
+  [
+   "Dbmaj7"
+  ],
+  [
+   "Dm7b5"
+  ],
+  [
+   "G7alt"
+  ],
+  [
+   "Cm6"
+  ],
+  [
+   "G7"
+  ]
+ ],
+ "titulo": "Blue Bossa",
+ "coros": 4,
+ "bateria": [
+  "escobillas",
+  "baquetas",
+  "baquetas",
+  "escobillas"
+ ],
+ "fills": [],
+ "estilo": "bossa"
+}

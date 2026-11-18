@@ -1,0 +1,86 @@
+{
+ "Afternoon_in_Paris": {
+  "titulo": "Afternoon in Paris",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Satin_Doll": {
+  "titulo": "Satin Doll",
+  "examen": 130,
+  "trabajo": 100,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Four": {
+  "titulo": "Four",
+  "examen": 150,
+  "trabajo": 120,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Blue_Monk": {
+  "titulo": "Blue Monk",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "swing",
+  "compases": 12
+ },
+ "Impressions": {
+  "titulo": "Impressions",
+  "examen": 175,
+  "trabajo": 145,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Softly_as_in_a_Morning_Sunrise": {
+  "titulo": "Softly as in a Morning Sunrise",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Blue_Bossa": {
+  "titulo": "Blue Bossa",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "bossa",
+  "compases": 16
+ },
+ "Autumn_Leaves": {
+  "titulo": "Autumn Leaves",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "Lullaby_of_Birdland": {
+  "titulo": "Lullaby of Birdland",
+  "examen": 130,
+  "trabajo": 100,
+  "estilo": "swing",
+  "compases": 32
+ },
+ "In_a_Sentimental_Mood": {
+  "titulo": "In a Sentimental Mood",
+  "examen": 80,
+  "trabajo": 66,
+  "estilo": "balada",
+  "compases": 32
+ },
+ "All_Blues": {
+  "titulo": "All Blues",
+  "examen": 140,
+  "trabajo": 110,
+  "estilo": "vals",
+  "compases": 12
+ },
+ "Bessies_Blues": {
+  "titulo": "Bessie's Blues",
+  "examen": 150,
+  "trabajo": 120,
+  "estilo": "swing",
+  "compases": 12
+ }
+}

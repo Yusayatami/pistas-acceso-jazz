@@ -1,0 +1,55 @@
+{
+ "tipo": "tema",
+ "compases": [
+  [
+   "Eb7"
+  ],
+  [
+   "Ab7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Ab7"
+  ],
+  [
+   "Ab7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Bb7"
+  ],
+  [
+   "Ab7"
+  ],
+  [
+   "Eb7"
+  ],
+  [
+   "Bb7"
+  ]
+ ],
+ "titulo": "Bessie's Blues",
+ "coros": 8,
+ "bateria": [
+  "escobillas",
+  "escobillas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "baquetas",
+  "escobillas",
+  "escobillas"
+ ],
+ "fills": [],
+ "estilo": "swing"
+}

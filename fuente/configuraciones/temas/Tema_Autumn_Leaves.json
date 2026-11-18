@@ -1,0 +1,115 @@
+{
+ "tipo": "tema",
+ "final": "Gm7",
+ "compases": [
+  [
+   "Cm7"
+  ],
+  [
+   "F7"
+  ],
+  [
+   "Bbmaj7"
+  ],
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Am7b5"
+  ],
+  [
+   "D7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Cm7"
+  ],
+  [
+   "F7"
+  ],
+  [
+   "Bbmaj7"
+  ],
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Am7b5"
+  ],
+  [
+   "D7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Am7b5"
+  ],
+  [
+   "D7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "Cm7"
+  ],
+  [
+   "F7"
+  ],
+  [
+   "Bbmaj7"
+  ],
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Am7b5"
+  ],
+  [
+   "D7"
+  ],
+  [
+   "Gm7",
+   "C7"
+  ],
+  [
+   "Fm7",
+   "Bb7"
+  ],
+  [
+   "Ebmaj7"
+  ],
+  [
+   "Am7b5",
+   "D7alt"
+  ],
+  [
+   "Gm7"
+  ],
+  [
+   "G7"
+  ]
+ ],
+ "titulo": "Autumn Leaves",
+ "coros": 4,
+ "bateria": [
+  "escobillas",
+  "baquetas",
+  "baquetas",
+  "escobillas"
+ ],
+ "fills": [],
+ "estilo": "swing"
+}
