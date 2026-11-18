@@ -232,6 +232,84 @@ for i, (r, q, dur) in enumerate(chords):
         root = nroot
 END = beat
 bass.append((END, root, 96))                             # nota final (la fundamental a la que llega la línea)
+
+# ---------- patrones de Ramón para acordes que duran varios compases (A1/A2: "bajo": "patrones") ----------
+# Grados genéricos; se adaptan a la calidad: el 3 es la 3ª del acorde, el 5 su 5ª, y en 7(b9) y m7(b5)
+# el 2 y el 6 salen de su escala (b2, b6).
+SEMI = {"1": 0, "b2": 1, "2": 2, "b3": 3, "3": 4, "4": 5, "b5": 6, "5": 7, "b6": 8, "6": 9, "b7": 10, "7": 11, "8": 12}
+PAT1 = {"1235": "1 2 3 5", "1532": "1 5 3 2", "15b77": "1 5 b7 7", "152b2": "1 5 2 b2", "8b765": "8 b7 6 5"}
+PAT2 = {"maj7": "8 7 6 b6 5 4 3 2", "6": "8 7 6 b6 5 4 3 2", "7": "8 7 b7 6 5 4 3 2", "7b9": "8 7 b7 6 5 4 3 2",
+        "m6": "8 b7 6 b6 5 4 b3 2"}                    # dos compases; el 1 cae en el compás siguiente
+ADAPT = {"m7": {"3": "b3"}, "m6": {"3": "b3"}, "mmaj7": {"3": "b3"},
+         "7b9": {"2": "b2", "6": "b6"}, "7alt": {"2": "b2", "6": "b6", "5": "b6"},
+         "m7b5": {"3": "b3", "2": "b2", "5": "b5", "6": "b6"}, "dim7": {"3": "b3", "5": "b5", "6": "6"}}
+def grados(txt, q):
+    m = ADAPT.get(q, {}); out = []
+    for g in txt.split():
+        out.append(SEMI[m.get(g, g)])
+    return out
+def pats1(q):
+    has_b7 = (10 in CT[q])
+    res = {}
+    for k, t in PAT1.items():
+        if "b7" in t and not has_b7: continue                  # 1 5 b7 7 y 8 b7 6 5: solo con 7ª menor
+        g = grados(t, q)
+        if len(set(g)) < 4: continue                           # p. ej. 1 5 2 b2 en 7(b9): 2 = b2, se descarta
+        res[k] = g
+    return res
+
+def bajo_patrones(chords, final_pc):
+    groups = []                                                # acordes iguales seguidos de un compás entero
+    for r, q, d in chords:
+        if groups and groups[-1][0] == (r, q) and d == 4: groups[-1][1] += 1
+        else: groups.append([(r, q), 1 if d == 4 else 0, d])
+    if any(g[1] == 0 for g in groups): raise ValueError("bajo patrones: solo acordes de compás entero")
+    out, beat, prev_end, prev_seq = [], 0, None, None
+    for gi, ((r, q), n, _) in enumerate(groups):
+        R = min(x for x in range(28, 40) if x % 12 == r)       # fundamental grave; el 8 es R + 12
+        last = gi == len(groups) - 1
+        nxt = groups[gi + 1][0][0] if not last else final_pc
+        Rn = min(x for x in range(28, 40) if x % 12 == nxt)
+        p1 = pats1(q); p2 = PAT2.get(q)
+        opts = [(k, g, 1) for k, g in p1.items()] + ([("dos", grados(p2, q), 2)] if p2 else [])
+        best = None
+        def walk(seq, bars, start_ok):
+            nonlocal best
+            if bars == n:
+                k, g, L = seq[-1]
+                end = R + g[-1]
+                if L == 2 and not last: return               # el patrón de dos compases necesita la misma armonía después
+                if last: ok = L == 2 or min(abs(end - R), abs(end - R - 12)) <= 2
+                else: ok = min(abs(end - Rn), abs(end - Rn - 12)) in (1, 2)
+                if not ok: return
+                sc = random.random() * 2 + (1.5 if any(x[2] == 2 for x in seq) else 0)
+                sc -= sum(2 for a, b in zip(seq, seq[1:]) if a[0] == b[0])
+                sc -= 2 if [x[0] for x in seq] == prev_seq else 0
+                if best is None or sc > best[0]: best = (sc, list(seq))
+                return
+            for k, g, L in opts:
+                if bars + L > n: continue
+                st = R + g[0]
+                if not start_ok(st): continue
+                if seq:
+                    pk, pg, pL = seq[-1]
+                    if pL == 2 and g[0] != 0: continue        # tras el de dos compases se llega al 1
+                    if pL == 1 and abs(st - (R + pg[-1])) > 7: continue
+                walk(seq + [(k, g, L)], bars + L, lambda x: True)
+        first_ok = (lambda x: True) if prev_end is None else (lambda x: abs(x - prev_end) in (1, 2))
+        walk([], 0, first_ok)
+        if best is None: raise ValueError(f"bajo patrones: sin combinación válida en el grupo {gi}")
+        for k, g, L in best[1]:
+            for j, deg in enumerate(g):
+                out.append((beat + j, R + deg, 92 if j % 4 == 0 else random.randint(76, 86)))
+            beat += 4 * L
+        prev_end = R + best[1][-1][1][-1]; prev_seq = [x[0] for x in best[1]]
+    fin = min((x for x in range(28, 52) if x % 12 == final_pc), key=lambda x: abs(x - prev_end))
+    out.append((beat, fin, 96))
+    return out, beat
+
+if CFG.get("bajo") == "patrones":
+    bass, END = bajo_patrones(chords, final_pc)
 ghosts = [(t + SWING, (n2 if random.random() < 0.6 else n), random.randint(55, 70))
           for (t, n, v), (t2, n2, v2) in zip(bass, bass[1:]) if t2 - t == 1 and random.random() < 0.16]
 
