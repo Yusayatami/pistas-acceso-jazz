@@ -125,6 +125,7 @@ def nearest(pc, ref, lo=LOW, hi=HIGH):
     return min((n for n in range(lo, hi + 1) if n % 12 == pc), key=lambda n: (abs(n - ref), -n))
 in_scale = lambda n, r, q: (n - r) % 12 in SCALE[q]
 is_ct = lambda n, r, q: (n - r) % 12 in CT[q]
+is_third = lambda n, r, q: (n - r) % 12 == Q[q][0]      # 3ª del acorde (4ª en sus)
 ok_range = lambda ns: min(ns) >= LOW and max(ns) <= HIGH + 3
 
 def targets(pc, ref):                                    # la fundamental siguiente, en las dos octavas útiles
@@ -145,6 +146,7 @@ def escalar(R, r, q, nxt):
             ns = [R, R + st[0], R + st[0] + st[1], R + st[0] + st[1] + st[2]]
             if not ok_range(ns + [T]): continue
             if ns[3] == T + 1 and not ns[2] > ns[3]: continue   # semitono superior solo bajando hacia él
+            if ns[3] == T + 1 and is_third(ns[2], r, q): continue   # ni viniendo de la 3ª del acorde
             sc = 0.0
             for k in (1, 2):                             # tiempos 2 y 3
                 if in_scale(ns[k], r, q): sc += 2
@@ -168,6 +170,7 @@ def arpegio_paso(R, r, q, nxt):
                     n3 = T + side * d3
                     if n3 in (n2, R) or not in_scale(n3, r, q) or abs(n3 - n2) > 5: continue
                     c = T + side * 1                     # llegada por semitono
+                    if c == T + 1 and is_third(n3, r, q): continue   # semitono superior: no desde la 3ª
                     ns = [R, n2, n3, c]
                     if not ok_range(ns + [T]): continue
                     sc = 2.0 + (1 if is_ct(n3, r, q) else 0)
@@ -185,12 +188,15 @@ def arpegio(R, r, q, nxt, t3, t5, t6):
     body = [R + p for p in pat]
     return body, approach(body[-1], r, q, nxt)
 
-def approach(last, r, q, nxt):                           # nota de aproximación (acordes de 2 tiempos)
+def approach(last, r, q, nxt, avoid=None):               # nota de aproximación (acordes de 2 tiempos)
     target = nearest(nxt, last)
     opts = [o for o in (target - 1, target + 1, target + 7, target - 5, target - 2, target + 2)
             if LOW <= o <= HIGH + 3 and o != last and abs(o - last) <= 9
             and (abs(o - target) != 2 or in_scale(o, r, q))
-            and (o != target + 1 or last > o)]                 # semitono superior solo bajando hacia él
+            and (o != target + 1 or last > o)                  # semitono superior solo bajando hacia él
+            and (o != target + 1 or not is_third(last, r, q))] # ni desde la 3ª del acorde
+    if avoid is not None and any(o != avoid for o in opts):
+        opts = [o for o in opts if o != avoid]           # no repetir el comienzo del compás anterior
     w = [3 if abs(o - target) == 1 else 2 for o in opts]
     return (random.choices(opts, w)[0] if opts else target - 1), target
 
@@ -210,8 +216,9 @@ def pick(cands):                                         # elige entre las mejor
 # el 2 y el 6 salen de su escala (b2, b6).
 SEMI = {"1": 0, "b2": 1, "2": 2, "b3": 3, "3": 4, "4": 5, "b5": 6, "5": 7, "b6": 8, "6": 9, "b7": 10, "7": 11, "8": 12}
 PAT1 = {"1235": "1 2 3 5", "1532": "1 5 3 2", "15b77": "1 5 b7 7", "152b2": "1 5 2 b2", "8b765": "8 b7 6 5"}
-PAT2 = {"maj7": "8 7 6 b6 5 4 3 2", "6": "8 7 6 b6 5 4 3 2", "7": "8 7 b7 6 5 4 3 2", "7b9": "8 7 b7 6 5 4 3 2",
+PAT2 = {"maj7": "8 7 6 b6 5 4 3 2", "6": "8 7 6 b6 5 4 3 2", "7": "8 7 b7 6 5 4 3 2",
         "m6": "8 b7 6 b6 5 4 b3 2"}                    # dos compases; el 1 cae en el compás siguiente
+# (en 7(b9) no: con el 2 como b9 acabaría en 3 b2 1, aproximación superior desde la 3ª)
 ADAPT = {"m7": {"3": "b3"}, "m6": {"3": "b3"}, "mmaj7": {"3": "b3"},
          "7b9": {"2": "b2", "6": "b6"}, "7alt": {"2": "b2", "6": "b6", "5": "b6"},
          "m7b5": {"3": "b3", "2": "b2", "5": "b5", "6": "b6"}, "dim7": {"3": "b3", "5": "b5", "6": "6"}}
@@ -241,6 +248,7 @@ def pat_cands(R, r, q, nxt):                             # patrones de un compá
         for T in targets(nxt, ns[-1]):
             if abs(T - ns[-1]) not in (1, 2): continue
             if ns[-1] == T + 1 and not ns[-2] > ns[-1]: continue   # semitono superior solo bajando hacia él
+            if ns[-1] == T + 1 and is_third(ns[-2], r, q): continue   # ni desde la 3ª del acorde
             out.append((3.0, ns, T))
     return out
 
@@ -255,6 +263,10 @@ final_pc = (ch(CFG["final"], 4)[0] if "final" in CFG else          # "final": ac
 bass, beat = [], 0
 root = nearest(chords[0][0], 38)
 skip = False
+def prev_start(beat):                                    # dos primeras notas del compás anterior
+    if beat % 4 or beat < 4: return None
+    d = {t: n for t, n, v in bass[-8:]}
+    return (d.get(beat - 4), d.get(beat - 3))
 for i, (r, q, dur) in enumerate(chords):
     if skip:                                             # compás ya cubierto por un patrón de dos compases
         skip = False; continue
@@ -263,14 +275,18 @@ for i, (r, q, dur) in enumerate(chords):
     if dur == 1:
         notes, nroot = [root], nearest(nxt, root)
     elif dur == 2:
-        app, nroot = approach(root, r, q, nxt)
+        ps = prev_start(beat)
+        app, nroot = approach(root, r, q, nxt, avoid=ps[1] if ps and ps[0] == root else None)
         notes = [root, app]
     else:
+        ps = prev_start(beat)
+        differs = lambda ns: not ps or (ns[0], ns[1]) != ps  # no repetir el comienzo del compás anterior
         two = None
         if USE_PAT and i + 1 < len(chords) and chords[i + 1] == (r, q, 4) and random.random() < 0.3:
             after = chords[i + 2] if i + 2 < len(chords) else None
             same = (after[0], after[1]) == (r, q) if after else final_pc == r
             two = pat_two(root, q, same)
+            if two and not differs(two[0]): two = None
         if two:
             notes, nroot = two
             for j, n in enumerate(notes):
@@ -284,11 +300,17 @@ for i, (r, q, dur) in enumerate(chords):
         cands = escalar(root, r, q, nxt) if fam == "escalar" else \
                 arpegio_paso(root, r, q, nxt) if fam == "arpegio_paso" else \
                 pat_cands(root, r, q, nxt) if fam == "patron" else []
+        if cands and not any(differs(c[1]) for c in cands):      # todas repiten el comienzo: otras fórmulas
+            cands = escalar(root, r, q, nxt) + arpegio_paso(root, r, q, nxt) + \
+                    (pat_cands(root, r, q, nxt) if USE_PAT else [])
+        cands = [c for c in cands if differs(c[1])]
         if cands:
             sc, notes, nroot = pick(cands)
             recent = (recent + [shape(notes)])[-2:]
         else:
-            body, (app, nroot) = arpegio(root, r, q, nxt, t3, t5, t6)
+            for _ in range(8):
+                body, (app, nroot) = arpegio(root, r, q, nxt, t3, t5, t6)
+                if differs(body): break
             notes = body + [app]
     for j, n in enumerate(notes[:dur]):
         bass.append((beat + j, n, 92 if j == 0 else random.randint(76, 86)))
