@@ -199,41 +199,13 @@ shape = lambda ns: tuple(b - a for a, b in zip(ns, ns[1:]))
 
 def pick(cands):                                         # elige entre las mejores, con algo de azar
     cands = [(sc - (4.0 if shape(ns) in recent else 0), ns, T) for sc, ns, T in cands]   # no repetir
+    if CFG.get("bajo") == "patrones":                    # con acordes largos, que la línea vuelva al registro central
+        cands = [(sc - 0.25 * max(0, abs(T - 38) - 5), ns, T) for sc, ns, T in cands]
     best = max(c[0] for c in cands)
     top = [c for c in cands if c[0] >= best - 1.0]
     return random.choice(top)
 
-final_pc = (ch(CFG["final"], 4)[0] if "final" in CFG else          # "final": acorde del golpe final
-            chords[0][0] if CFG.get("tipo", "ejercicio") == "tema" else chords[-1][0])
-bass, beat = [], 0
-root = nearest(chords[0][0], 38)
-for i, (r, q, dur) in enumerate(chords):
-    t3, t5, t6 = Q[q]
-    nxt = chords[i + 1][0] if i + 1 < len(chords) else final_pc   # el último acorde lleva a la nota final
-    if dur == 1:
-        notes, nroot = [root], nearest(nxt, root)
-    elif dur == 2:
-        app, nroot = approach(root, r, q, nxt)
-        notes = [root, app]
-    else:
-        fam = random.choices(["escalar", "arpegio_paso", "arpegio"], [0.5, 0.3, 0.2])[0]
-        cands = escalar(root, r, q, nxt) if fam == "escalar" else \
-                arpegio_paso(root, r, q, nxt) if fam == "arpegio_paso" else []
-        if cands:
-            sc, notes, nroot = pick(cands)
-            recent = (recent + [shape(notes)])[-2:]
-        else:
-            body, (app, nroot) = arpegio(root, r, q, nxt, t3, t5, t6)
-            notes = body + [app]
-    for j, n in enumerate(notes[:dur]):
-        bass.append((beat + j, n, 92 if j == 0 else random.randint(76, 86)))
-    beat += dur
-    if nroot is not None:
-        root = nroot
-END = beat
-bass.append((END, root, 96))                             # nota final (la fundamental a la que llega la línea)
-
-# ---------- patrones de Ramón para acordes que duran varios compases (A1/A2: "bajo": "patrones") ----------
+# ---------- patrones de Ramón para acordes que duran varios compases ("bajo": "patrones") ----------
 # Grados genéricos; se adaptan a la calidad: el 3 es la 3ª del acorde, el 5 su 5ª, y en 7(b9) y m7(b5)
 # el 2 y el 6 salen de su escala (b2, b6).
 SEMI = {"1": 0, "b2": 1, "2": 2, "b3": 3, "3": 4, "4": 5, "b5": 6, "5": 7, "b6": 8, "6": 9, "b7": 10, "7": 11, "8": 12}
@@ -258,58 +230,74 @@ def pats1(q):
         res[k] = g
     return res
 
-def bajo_patrones(chords, final_pc):
-    groups = []                                                # acordes iguales seguidos de un compás entero
-    for r, q, d in chords:
-        if groups and groups[-1][0] == (r, q) and d == 4: groups[-1][1] += 1
-        else: groups.append([(r, q), 1 if d == 4 else 0, d])
-    if any(g[1] == 0 for g in groups): raise ValueError("bajo patrones: solo acordes de compás entero")
-    out, beat, prev_end, prev_seq = [], 0, None, None
-    for gi, ((r, q), n, _) in enumerate(groups):
-        R = min(x for x in range(28, 40) if x % 12 == r)       # fundamental grave; el 8 es R + 12
-        last = gi == len(groups) - 1
-        nxt = groups[gi + 1][0][0] if not last else final_pc
-        Rn = min(x for x in range(28, 40) if x % 12 == nxt)
-        p1 = pats1(q); p2 = PAT2.get(q)
-        opts = [(k, g, 1) for k, g in p1.items()] + ([("dos", grados(p2, q), 2)] if p2 else [])
-        best = None
-        def walk(seq, bars, start_ok):
-            nonlocal best
-            if bars == n:
-                k, g, L = seq[-1]
-                end = R + g[-1]
-                if L == 2 and not last: return               # el patrón de dos compases necesita la misma armonía después
-                if last: ok = L == 2 or min(abs(end - R), abs(end - R - 12)) <= 2
-                else: ok = min(abs(end - Rn), abs(end - Rn - 12)) in (1, 2)
-                if not ok: return
-                sc = random.random() * 2 + (1.5 if any(x[2] == 2 for x in seq) else 0)
-                sc -= sum(2 for a, b in zip(seq, seq[1:]) if a[0] == b[0])
-                sc -= 2 if [x[0] for x in seq] == prev_seq else 0
-                if best is None or sc > best[0]: best = (sc, list(seq))
-                return
-            for k, g, L in opts:
-                if bars + L > n: continue
-                st = R + g[0]
-                if not start_ok(st): continue
-                if seq:
-                    pk, pg, pL = seq[-1]
-                    if pL == 2 and g[0] != 0: continue        # tras el de dos compases se llega al 1
-                    if pL == 1 and abs(st - (R + pg[-1])) > 7: continue
-                walk(seq + [(k, g, L)], bars + L, lambda x: True)
-        first_ok = (lambda x: True) if prev_end is None else (lambda x: abs(x - prev_end) in (1, 2))
-        walk([], 0, first_ok)
-        if best is None: raise ValueError(f"bajo patrones: sin combinación válida en el grupo {gi}")
-        for k, g, L in best[1]:
-            for j, deg in enumerate(g):
-                out.append((beat + j, R + deg, 92 if j % 4 == 0 else random.randint(76, 86)))
-            beat += 4 * L
-        prev_end = R + best[1][-1][1][-1]; prev_seq = [x[0] for x in best[1]]
-    fin = min((x for x in range(28, 52) if x % 12 == final_pc), key=lambda x: abs(x - prev_end))
-    out.append((beat, fin, 96))
-    return out, beat
+USE_PAT = CFG.get("bajo") == "patrones"                 # se mezclan con las fórmulas de siempre
 
-if CFG.get("bajo") == "patrones":
-    bass, END = bajo_patrones(chords, final_pc)
+def pat_cands(R, r, q, nxt):                             # patrones de un compás que llegan por grado a la fundamental siguiente
+    out = []
+    for k, g in pats1(q).items():
+        base = R - 12 if g[0] == 12 else R               # el compás empieza siempre en la fundamental que toca
+        ns = [base + x for x in g]
+        if not ok_range(ns): continue
+        for T in targets(nxt, ns[-1]):
+            if abs(T - ns[-1]) not in (1, 2): continue
+            if ns[-1] == T + 1 and not ns[-2] > ns[-1]: continue   # semitono superior solo bajando hacia él
+            out.append((3.0, ns, T))
+    return out
+
+def pat_two(R, q, same_after):                           # patrón de dos compases: baja de la octava a la fundamental
+    if q not in PAT2 or not same_after: return None
+    g = grados(PAT2[q], q); base = R - 12
+    if base < LOW: return None
+    return [base + x for x in g], base
+
+final_pc = (ch(CFG["final"], 4)[0] if "final" in CFG else          # "final": acorde del golpe final
+            chords[0][0] if CFG.get("tipo", "ejercicio") == "tema" else chords[-1][0])
+bass, beat = [], 0
+root = nearest(chords[0][0], 38)
+skip = False
+for i, (r, q, dur) in enumerate(chords):
+    if skip:                                             # compás ya cubierto por un patrón de dos compases
+        skip = False; continue
+    t3, t5, t6 = Q[q]
+    nxt = chords[i + 1][0] if i + 1 < len(chords) else final_pc   # el último acorde lleva a la nota final
+    if dur == 1:
+        notes, nroot = [root], nearest(nxt, root)
+    elif dur == 2:
+        app, nroot = approach(root, r, q, nxt)
+        notes = [root, app]
+    else:
+        two = None
+        if USE_PAT and i + 1 < len(chords) and chords[i + 1] == (r, q, 4) and random.random() < 0.3:
+            after = chords[i + 2] if i + 2 < len(chords) else None
+            same = (after[0], after[1]) == (r, q) if after else final_pc == r
+            two = pat_two(root, q, same)
+        if two:
+            notes, nroot = two
+            for j, n in enumerate(notes):
+                bass.append((beat + j, n, 92 if j % 4 == 0 else random.randint(76, 86)))
+            beat += 8; root = nroot; skip = True
+            continue
+        if USE_PAT:
+            fam = random.choices(["patron", "escalar", "arpegio_paso", "arpegio"], [0.35, 0.35, 0.2, 0.1])[0]
+        else:
+            fam = random.choices(["escalar", "arpegio_paso", "arpegio"], [0.5, 0.3, 0.2])[0]
+        cands = escalar(root, r, q, nxt) if fam == "escalar" else \
+                arpegio_paso(root, r, q, nxt) if fam == "arpegio_paso" else \
+                pat_cands(root, r, q, nxt) if fam == "patron" else []
+        if cands:
+            sc, notes, nroot = pick(cands)
+            recent = (recent + [shape(notes)])[-2:]
+        else:
+            body, (app, nroot) = arpegio(root, r, q, nxt, t3, t5, t6)
+            notes = body + [app]
+    for j, n in enumerate(notes[:dur]):
+        bass.append((beat + j, n, 92 if j == 0 else random.randint(76, 86)))
+    beat += dur
+    if nroot is not None:
+        root = nroot
+END = beat
+bass.append((END, root, 96))                             # nota final (la fundamental a la que llega la línea)
+
 ghosts = [(t + SWING, (n2 if random.random() < 0.6 else n), random.randint(55, 70))
           for (t, n, v), (t2, n2, v2) in zip(bass, bass[1:]) if t2 - t == 1 and random.random() < 0.16]
 
