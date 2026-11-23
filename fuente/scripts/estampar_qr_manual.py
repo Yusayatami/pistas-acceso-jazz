@@ -40,13 +40,10 @@ def overlay(w, h, slug, sub, page):
         for k, on in enumerate(row):
             if on: c.rect(x0 + k * cell, ytop - (r + 1) * cell, cell + 0.02, cell + 0.02, stroke=0, fill=1)
     if page != 53:
-        y = h - 71; tx = x0 - 9
-        txt = caption(sub)
-        wg = pdfmetrics.stringWidth(txt, "DMSans", 7.5)
-        g = c.beginText(tx - wg, y); g.setFont("DMSans", 7.5); g.setFillColor(GRIS); g.textOut(txt); c.drawText(g)
-        lab, cs = "PISTAS", 1.1
+        y = h - 71; tx = x0 - 9                          # rótulo único, espaciado, como los de sección
+        lab, cs = "PISTAS DE ACOMPAÑAMIENTO", 1.1
         wl = pdfmetrics.stringWidth(lab, "DMSans-Bold", 7.5) + cs * (len(lab) - 1)
-        t = c.beginText(tx - wg - 7 - wl, y); t.setFont("DMSans-Bold", 7.5); t.setCharSpace(cs)
+        t = c.beginText(tx - wl, y); t.setFont("DMSans-Bold", 7.5); t.setCharSpace(cs)
         t.setFillColor(NARANJA); t.textOut(lab); c.drawText(t)
     c.save(); buf.seek(0)
     return PdfReader(buf).pages[0]
