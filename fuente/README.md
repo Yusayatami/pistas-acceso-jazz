@@ -9,7 +9,7 @@ Todo lo necesario para regenerar las pistas, la web y los QR del manual de prepa
 - `configuraciones/temas/`: los 12 temas (2 libres y 10 obligados), a tempo de trabajo y de examen (`temas.json`). Los temas suenan 4 vueltas y los blues de 12 compases 8. La clave `estilo` puede ser `swing`, `bossa` (*Blue Bossa*), `vals` (*All Blues*, con `"compas": 3`) o `balada` (*In a Sentimental Mood*). La clave `final` fija el acorde del golpe final cuando el tema no empieza en el I (*Autumn Leaves*).
 - `scripts/`: los scripts de la skill «pistas-acompanamiento-jazz» (`setup.sh`, `pista.py`, `mezcla.py`, `render.sh`…), además de:
   - `generar_web.py`: monta la web y los QR a partir de una carpeta con todos los MP3.
-  - `estampar_qr_cuaderno.py` y `estampar_qr_manual.py`: ponen los QR en los PDF del cuaderno de anexos y del manual, sin rehacerlos. Usan las fuentes DM Sans (`DMSans-Regular.ttf` y `DMSans-Bold.ttf` en `/home/claude/`).
+  - `estampar_qr_cuaderno.py` y `estampar_qr_manual.py`: ponen los QR en los PDF del cuaderno de anexos y del manual, sin rehacerlos. El del manual reconoce cada página por su etiqueta («U2 · Semana 1 · Comping») y su texto, así que sirve para cualquier versión del manual aunque cambie la paginación: `python3 estampar_qr_manual.py Manual.pdf Manual_QR.pdf`. Si una página no tiene hueco arriba, el QR va abajo a la derecha y el script lo avisa para revisarlo. Usan las fuentes DM Sans (`DMSans-Regular.ttf` y `DMSans-Bold.ttf` en `/home/claude/`).
 - `ejemplos/curva_referencia.json`: el sonido global aprobado por Ramón (ecualización, compresión y apertura estéreo).
 
 ## Cambiar una pista
