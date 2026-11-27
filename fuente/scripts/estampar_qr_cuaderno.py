@@ -10,9 +10,15 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib.colors import HexColor
 
 BASE = "https://yusayatami.github.io/pistas-acceso-jazz/"
-PAGINAS = {3: ("a1", "Blanca 50 y 70"), 4: ("a2", "Blanca 50 y 70"), 5: ("a3", "Blanca 50 y 70 · También con V alterado"),
-           6: ("a4", "Blanca 50 y 70"), 7: ("a4", "Blanca 50 y 70"), 8: ("a5", "Blanca 50 y 70 · También con V alterado"),
-           9: ("a6", "Blanca 50 y 70"), 10: ("a6", "Blanca 50 y 70")}
+SUB = {"a1": "Blanca 50 y 70", "a2": "Blanca 50 y 70", "a3": "Blanca 50 y 70 · También con V alterado",
+       "a4": "Blanca 50 y 70", "a5": "Blanca 50 y 70 · También con V alterado", "a6": "Blanca 50 y 70"}
+def paginas(reader):                                     # cada parrilla se reconoce por su etiqueta «Anexo · A3», no por su número
+    import re
+    out = {}
+    for i, p in enumerate(reader.pages, 1):
+        m = re.search(r"Anexo · (A[1-6])\b", " ".join((p.extract_text() or "").split())[:200])
+        if m: out[i] = (m.group(1).lower(), SUB[m.group(1).lower()])
+    return out
 pdfmetrics.registerFont(TTFont("DMSans-Bold", "/home/claude/DMSans-Bold.ttf"))
 pdfmetrics.registerFont(TTFont("DMSans", "/home/claude/DMSans-Regular.ttf"))
 NARANJA, GRIS = HexColor("#C76B1A"), HexColor("#55606D")
@@ -45,7 +51,7 @@ def overlay(w, h, slug, sub):
     c.save(); buf.seek(0)
     return PdfReader(buf).pages[0]
 
-r = PdfReader(sys.argv[1]); wtr = PdfWriter()
+r = PdfReader(sys.argv[1]); wtr = PdfWriter(); PAGINAS = paginas(r)
 for i, p in enumerate(r.pages, 1):
     if i in PAGINAS:
         w, h = float(p.mediabox.width), float(p.mediabox.height)
