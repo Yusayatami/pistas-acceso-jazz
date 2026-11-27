@@ -51,7 +51,7 @@ def paginas(reader):
     out = {}
     for i, p in enumerate(reader.pages, 1):
         d = destino(p.extract_text() or "")
-        if d is not None: out[i] = d
+        if d: out[i] = d                                 # sin QR al índice general de la web (petición de Ramón)
     return out
 
 # (mapa por número de página de la versión del 23-11-2026, solo como referencia)
@@ -86,7 +86,7 @@ def overlay(w, h, slug, page, especial=False):
             if on: c.rect(x0 + k * cell, ytop - (r + 1) * cell, cell + 0.02, cell + 0.02, stroke=0, fill=1)
     if not especial:
         tx = x0 - 9                                      # rótulo en dos líneas, espaciado, alineado a la derecha
-        for y, lab in ((h - 62, "PISTAS"), (h - 71.5, "DE ACOMPAÑAMIENTO")):
+        for y, lab in ((h - 62, "PISTAS"), (h - 71.5, "DE AUDIO")):
             cs = 1.1
             wl = pdfmetrics.stringWidth(lab, "DMSans-Bold", 7.5) + cs * (len(lab) - 1)
             t = c.beginText(tx - wl, y); t.setFont("DMSans-Bold", 7.5); t.setCharSpace(cs)
