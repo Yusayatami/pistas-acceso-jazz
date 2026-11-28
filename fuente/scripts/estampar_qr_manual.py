@@ -106,11 +106,11 @@ def sin_hueco(pdf):                                      # páginas con texto do
 
 r = PdfReader(sys.argv[1]); wtr = PdfWriter()
 MAPA = paginas(r); LLENAS = sin_hueco(sys.argv[1])
-for i, p in enumerate(r.pages, 1):
+wtr.append(r)                                            # se copia el libro y se estampa sobre la copia
+for i, p in enumerate(wtr.pages, 1):                     # (estampar sobre el original se perdía en algunos PDF)
     if i in MAPA:
         w, h = float(p.mediabox.width), float(p.mediabox.height)
         p.merge_page(overlay(w, h, MAPA[i], i, especial=i in LLENAS))
-    wtr.add_page(p)
 wtr.write(sys.argv[2])
 print("QR estampados en", len(MAPA), "páginas ->", sys.argv[2])
 if LLENAS & set(MAPA):

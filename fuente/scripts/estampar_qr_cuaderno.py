@@ -46,10 +46,10 @@ def overlay(w, h, slug, sub):
     return PdfReader(buf).pages[0]
 
 r = PdfReader(sys.argv[1]); wtr = PdfWriter(); PAGINAS = paginas(r)
-for i, p in enumerate(r.pages, 1):
+wtr.append(r)                                            # se copia el libro y se estampa sobre la copia
+for i, p in enumerate(wtr.pages, 1):
     if i in PAGINAS:
         w, h = float(p.mediabox.width), float(p.mediabox.height)
         p.merge_page(overlay(w, h, *PAGINAS[i]))
-    wtr.add_page(p)
 wtr.write(sys.argv[2])
 print("QR estampados en", len(PAGINAS), "páginas ->", sys.argv[2])
